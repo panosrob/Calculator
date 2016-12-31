@@ -10,16 +10,72 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+    @IBOutlet private weak var display: UILabel!
+    
+    @IBOutlet private weak var history: UILabel!
+    
+    private var userIsInTheMiddleOfTyping = false
+    
+    private var brain  = CalculatorBrain()
+    
+    private var displayValue: Double {
+        get {
+            return Double(display.text!)!
+        }
+        set {
+            display.text = String(newValue)
+        }
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    
+    private var historyValue: String {
+        get {
+            return history.text!
+        }
+        set {
+            history.text = newValue
+        }
     }
-
-
+    
+    @IBAction private func touchDigit(_ sender: UIButton) {
+        let digit = sender.currentTitle!
+        let textInDisplay = display.text!
+        if !brain.isPartialResult {
+            brain.clear()
+            historyValue = ""
+        }
+        if digit == "." && textInDisplay.range(of: ".") != nil {
+            display.text = textInDisplay
+        } else {
+            if userIsInTheMiddleOfTyping {
+                display.text = textInDisplay + digit
+            } else {
+                display.text = digit
+            }
+            
+            userIsInTheMiddleOfTyping = true
+        }
+    }
+    
+    @IBAction private func performOperation(_ sender: UIButton) {
+        if userIsInTheMiddleOfTyping {
+            brain.setOperand(operand: displayValue)
+            userIsInTheMiddleOfTyping = false
+        }
+        if let mathematicalSymbol = sender.currentTitle {
+            brain.performOperation(symbol: mathematicalSymbol)
+        }
+        displayValue = brain.result
+        if brain.isPartialResult {
+            historyValue = brain.history + "..."
+        } else {
+            historyValue = brain.history + "="
+        }
+    }
+    
+    @IBAction private func clear() {
+        brain.clear()
+        displayValue = brain.result
+        historyValue = brain.history
+    }
 }
 

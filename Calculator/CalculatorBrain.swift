@@ -16,6 +16,8 @@ class CalculatorBrain {
     
     private var previousOperation: Operation = .Equals
     
+    private var internalProgram = [AnyObject]()
+    
     var isPartialResult: Bool {
         get {
             return pending != nil || description.isEmpty || description == " "
@@ -32,7 +34,33 @@ class CalculatorBrain {
     
     var history: String {
         get {
-            return description
+            if description != " " {
+                if isPartialResult {
+                    return description + "..."
+                } else {
+                    return description + "="
+                }
+            } else {
+                return description
+            }
+        }
+    }
+    typealias PropertyList = AnyObject
+    var program: PropertyList {
+        get {
+            return internalProgram as CalculatorBrain.PropertyList
+        }
+        set {
+            clear()
+            if let arrayOfOps = newValue as? [AnyObject] {
+                for op in arrayOfOps {
+                    if let operand = op as? Double {
+                        setOperand(operand: operand)
+                    } else if let operation = op as? String {
+                        performOperation(symbol: operation)
+                    }
+                }
+            }
         }
     }
     
@@ -74,9 +102,11 @@ class CalculatorBrain {
     
     func setOperand(operand: Double) {
         accumulator = operand
+        internalProgram.append(operand as AnyObject)
     }
     
     func performOperation(symbol: String) {
+        internalProgram.append(symbol as AnyObject)
         if let operation = operations[symbol] {
             switch operation {
             case .Constant(let value):
@@ -135,5 +165,6 @@ class CalculatorBrain {
         description = " "
         pending = nil
         previousOperation = .Equals
+        internalProgram.removeAll()
     }
 }

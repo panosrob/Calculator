@@ -36,12 +36,26 @@ class ViewController: UIViewController {
         }
     }
     
+    var savedProgram: CalculatorBrain.PropertyList?
+    
+    @IBAction func save() {
+        savedProgram = brain.program
+    }
+    
+    @IBAction func restore() {
+        if savedProgram != nil {
+            brain.program = savedProgram!
+            displayValue = brain.result
+            historyValue = brain.history
+        }
+    }
+    
     @IBAction private func touchDigit(_ sender: UIButton) {
         let digit = sender.currentTitle!
         let textInDisplay = display.text!
         if !brain.isPartialResult {
             brain.clear()
-            historyValue = ""
+            historyValue = " "
         }
         if digit == "." && textInDisplay.range(of: ".") != nil {
             display.text = textInDisplay
@@ -65,11 +79,7 @@ class ViewController: UIViewController {
             brain.performOperation(symbol: mathematicalSymbol)
         }
         displayValue = brain.result
-        if brain.isPartialResult {
-            historyValue = brain.history + "..."
-        } else {
-            historyValue = brain.history + "="
-        }
+        historyValue = brain.history
     }
     
     @IBAction private func clear() {

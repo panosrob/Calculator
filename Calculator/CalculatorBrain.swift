@@ -16,8 +16,6 @@ class CalculatorBrain {
     
     private var previousOperation: Operation = .Equals
     
-    private var programItems = [AnyObject]()
-    
     var isPartialResult: Bool {
         get {
             return pending != nil || description.isEmpty || description == " "
@@ -75,12 +73,10 @@ class CalculatorBrain {
     }
     
     func setOperand(operand: Double) {
-        programItems.append(operand as AnyObject)
         accumulator = operand
     }
     
     func performOperation(symbol: String) {
-        programItems.append(symbol as AnyObject)
         if let operation = operations[symbol] {
             switch operation {
             case .Constant(let value):
@@ -96,15 +92,7 @@ class CalculatorBrain {
                 previousOperation = operation;
             case .BinaryOperation(let function):
                 if isPartialResult {
-                    switch previousOperation {
-                        case .BinaryOperation(_):
-                            appendToDescription(String(accumulator))
-                        case .Equals:
-                            appendToDescription(String(accumulator))
-                        default:
-                            break
-                    }
-                    
+                    updateDescriptionContitionaly(accumulator)
                 }
                 
                 appendToDescription(symbol)
@@ -114,14 +102,7 @@ class CalculatorBrain {
                 previousOperation = operation;
             case .Equals:
                 if isPartialResult {
-                    switch previousOperation {
-                        case .BinaryOperation(_):
-                            appendToDescription(String(accumulator))
-                        case .Equals:
-                            appendToDescription(String(accumulator))
-                        default:
-                            break
-                    }
+                    updateDescriptionContitionaly(accumulator)
                     executePendingBinaryOperation()
                     previousOperation = operation;
                 }
@@ -134,6 +115,17 @@ class CalculatorBrain {
         if isPartialResult {
             accumulator = pending!.binaryFunction(pending!.firstOperand, accumulator)
             pending = nil
+        }
+    }
+    
+    private func updateDescriptionContitionaly(_ accumulator: Double){
+        switch previousOperation {
+            case .BinaryOperation(_):
+                appendToDescription(String(accumulator))
+            case .Equals:
+                appendToDescription(String(accumulator))
+            default:
+                break
         }
     }
     

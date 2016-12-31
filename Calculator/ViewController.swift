@@ -45,9 +45,19 @@ class ViewController: UIViewController {
     @IBAction func restore() {
         if savedProgram != nil {
             brain.program = savedProgram!
-            displayValue = brain.result
-            historyValue = brain.history
+            updateDisplays()
         }
+    }
+    
+    @IBAction func setVariable() {
+        brain.variableValues["M"] = displayValue
+        brain.program = brain.program
+        updateDisplays()
+    }
+    
+    @IBAction func getVariable() {
+        brain.setOperand(variableName: "M")
+        userIsInTheMiddleOfTyping = false
     }
     
     @IBAction private func touchDigit(_ sender: UIButton) {
@@ -78,6 +88,10 @@ class ViewController: UIViewController {
         if let mathematicalSymbol = sender.currentTitle {
             brain.performOperation(symbol: mathematicalSymbol)
         }
+        updateDisplays()
+    }
+    
+    func updateDisplays() {
         displayValue = brain.result
         historyValue = brain.history
     }
@@ -86,6 +100,7 @@ class ViewController: UIViewController {
         brain.clear()
         displayValue = brain.result
         historyValue = brain.history
+        userIsInTheMiddleOfTyping = false
     }
 }
 

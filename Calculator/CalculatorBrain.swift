@@ -57,7 +57,11 @@ class CalculatorBrain {
                     if let operand = op as? Double {
                         setOperand(operand: operand)
                     } else if let operation = op as? String {
-                        performOperation(symbol: operation)
+                        if operation == "M" {
+                            setOperand(variableName: operation)
+                        } else {
+                            performOperation(symbol: operation)
+                        }
                     }
                 }
             }
@@ -84,10 +88,13 @@ class CalculatorBrain {
         "=" : Operation.Equals
     ]
     
+    var variableValues = [String:Double]()
+    
     private enum Operation {
         case Constant(Double)
         case UnaryOperation((Double) -> Double)
         case BinaryOperation((Double, Double) -> Double)
+        case Variable
         case Equals
     }
     
@@ -103,6 +110,14 @@ class CalculatorBrain {
     func setOperand(operand: Double) {
         accumulator = operand
         internalProgram.append(operand as AnyObject)
+        
+    }
+    
+    func setOperand(variableName: String) {
+        variableValues[variableName] = variableValues[variableName] ?? 0.0
+        accumulator = variableValues[variableName]!
+        internalProgram.append(variableName as AnyObject)
+        previousOperation = .Variable
     }
     
     func performOperation(symbol: String) {
@@ -114,7 +129,12 @@ class CalculatorBrain {
                 previousOperation = operation;
             case .UnaryOperation(let function):
                 if isPartialResult {
-                    appendToDescription(symbol + "(" + String(accumulator) + ")")
+                    switch previousOperation {
+                    case .Variable:
+                        appendToDescription(symbol + "(" + String("M") + ")")
+                    default:
+                        appendToDescription(symbol + "(" + String(accumulator) + ")")
+                    }
                 } else {
                     description = symbol + "(" + description.replacingOccurrences(of: "=", with: "") + ")"
                 }
@@ -136,7 +156,8 @@ class CalculatorBrain {
                     executePendingBinaryOperation()
                     previousOperation = operation;
                 }
-                
+            default:
+                break
             }
         }
     }
@@ -154,6 +175,8 @@ class CalculatorBrain {
                 appendToDescription(String(accumulator))
             case .Equals:
                 appendToDescription(String(accumulator))
+            case .Variable:
+                appendToDescription("M")
             default:
                 break
         }
